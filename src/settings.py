@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-2#h#$7@0l2i6#r!dw52k@kdje%h4h+uuzsc9grq1vv(vi_x-e9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'accounts'
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -69,6 +69,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'src.wsgi.application'
+AUTH_USER_MODEL = "accounts.CustomUser"
 
 
 # Database
