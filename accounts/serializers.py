@@ -19,3 +19,5 @@ class UserSerializers(serializers.ModelSerializer):
                 password=validated_data["password"],
                 phone=validated_data["phone"]
             )
+class OtpCreateSerializers(serializers.Serializer):
+    email = serializers.EmailField()
