@@ -1,13 +1,15 @@
+from .serializers import UserSerializers, OtpCreateSerializers, ResetPasswordSerializers
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .serializers import UserSerializers, OtpCreateSerializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import authenticate
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
 from .utils import get_tokens_for_user
+from .models import CustomUser, OTP
 from rest_framework import status
-from .models import CustomUser
+from django.utils import timezone
+import random
 
 # Create your views here.
 class Signup(APIView):
@@ -38,14 +40,62 @@ class Signin(APIView):
         return Response({"message": "Invalid Email OR Password."}, status=status.HTTP_401_UNAUTHORIZED)
     
     
-# class SendOtp(APIView):
-#         permission_classes = [AllowAny]
+class SendOtp(APIView):
+        permission_classes = [AllowAny]
         
-#         def post(self, request, format=None):
-#             serializer = OtpCreateSerializers(data=request.data)
-#             serializer.is_valid(raise_exception=True)
+        def post(self, request, format=None):
+            serializer = OtpCreateSerializers(data=request.data)
+            serializer.is_valid(raise_exception=True)
             
-#             email = serializer.validated_data["email"]
+            email = serializer.validated_data["email"]
             
-#             if CustomUser.objects.filter(email=email).exists:
-#                 email = 
+            if CustomUser.objects.filter(email=email).exists:
+                user = CustomUser.objects.get(email=email)
+                otp = random.randint(11111, 99999)
+                
+                OTP.objects.update_or_create(user=user, defaults={'otp': otp, 'create_at': timezone.now()})
+                
+                return Response({
+                    "status": "success",
+                    "message": "OTP Send Successfully to Your Gmail",
+                }, status=status.HTTP_201_CREATED)
+        
+            return Response({
+                "status": "failed",
+                "message": "email doesnot exists",
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+            
+class ResetPassword(APIView):
+    
+    def post(self, request, format=None):
+        serializer = ResetPasswordSerializers(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data["email"]
+        otp = serializer.validated_data["otp"]
+        new_password = serializer.validated_data["new_password"]
+        
+        if CustomUser.objects.filter(email=email).exists():
+            user = CustomUser.objects.get(email=email)
+            
+            if OTP.objects.filter(user=user, otp=otp).exists():
+                user.set_password(new_password)
+                user.save()
+                
+                return Response({
+                    "status": "success",
+                    "message": "Password Reset Successfully",
+                }, status=status.HTTP_200_OK)
+            
+            return Response({
+                "status": "failed",
+                "message": "Invalid OTP",
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        return Response({
+            "status": "failed",
+            "message": "email doesnot exists",
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+        

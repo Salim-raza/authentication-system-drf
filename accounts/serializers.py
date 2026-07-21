@@ -21,3 +21,9 @@ class UserSerializers(serializers.ModelSerializer):
             )
 class OtpCreateSerializers(serializers.Serializer):
     email = serializers.EmailField()
+    
+    
+class ResetPasswordSerializers(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField()
+    new_password = serializers.CharField()
