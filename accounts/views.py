@@ -30,7 +30,7 @@ class Signin(APIView):
         serializer.is_valid(raise_exception=True)
         
         user = authenticate(
-            email = serializer.validated_data["email"]
+            email = serializer.validated_data["email"],
             password = serializer.validated_data["password"]
         )
         
@@ -39,6 +39,24 @@ class Signin(APIView):
             return Response({"message": "Login Successfully .", "access_token" : token["access"], "refresh_token": token["refresh"]}, status=status.HTTP_200_OK)
         return Response({"message": "Invalid Email OR Password."}, status=status.HTTP_401_UNAUTHORIZED)
     
+class ChangePassword(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, format=None):
+        serializer = UserSerializers(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        user = request.user
+        
+        if not user.check_password(serializer.validated_data["old_password"]):
+            return Response({"message": "Old Password is Incorrect."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.set_password(serializer.validated_data["new_password"])
+        user.save()
+        
+        return Response({"message": "Password Changed Successfully."}, status=status.HTTP_200_OK)
+
     
 class SendOtp(APIView):
         permission_classes = [AllowAny]
